@@ -153,7 +153,10 @@ MODULE o_lagrange
 	integer :: TIMESTEPS							! Count of timesteps
 	real(8), parameter :: RADIUS = 6378100.0, PI = 3.141592653589793238	! Standart constants
 	integer :: LAND_MODE
+<<<<<<< HEAD
 	character(len=1024) :: FILENAME_PARTICLES
+=======
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 contains
 	!-----------------MEMORY SECTION----------------------!
 	! Checking allocation
@@ -179,7 +182,11 @@ contains
 		ALLOCATE ( x2_p(N_P), STAT = AllocateStatus)
 		call o_alloc_check(AllocateStatus); x2_p = -1
 		ALLOCATE ( flags(N_P), STAT = AllocateStatus)
+<<<<<<< HEAD
 		call o_alloc_check(AllocateStatus); flags = 1
+=======
+		call o_alloc_check(AllocateStatus); flags = -3
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 		ALLOCATE ( x1_p_track(N_P, 0:FREQUENCY_FOR_FILE), STAT = AllocateStatus)
 		call o_alloc_check(AllocateStatus); x1_p_track = -1
 		ALLOCATE ( x2_p_track(N_P, 0:FREQUENCY_FOR_FILE), STAT = AllocateStatus)
@@ -232,6 +239,7 @@ contains
 	! Set essential model's constants
 	SUBROUTINE o_set_default_constants
 		integer :: is_from_file
+<<<<<<< HEAD
 		integer :: flag
 		open(17,FILE='client/config')
 		read(17,*), is_from_file
@@ -263,6 +271,33 @@ contains
 		!print *, il, jl, GRID_START_W, GRID_START_H, GRID_STEP, TIMESTEPS, DT, MAIN_PROC, FREQUENCY_FOR_FILE, LAND_MODE
 		!print *, ''
 		close(17, STATUS='KEEP')
+=======
+		is_from_file = 999
+		open(17,FILE='client/config')
+		read(17,'(I)'), is_from_file
+		if (is_from_file == 0) THEN
+			read(17,'(I)'), il
+			read(17,'(I)'), jl
+			read(17,*), GRID_START_W
+			read(17,*), GRID_START_H
+			read(17,*), GRID_STEP
+			read(17,'(I)'), TIMESTEPS
+			read(17,*), DT
+			read(17,'(I)'), MAIN_PROC
+			!print *, GRID_START_W, DT
+		end if
+		N_P = 1 			!number of particles
+		!MAIN_PROC = 0			!index of main process, which gather info
+		MY_COMM = MPI_COMM_WORLD	!communicator of module
+		!GRID_STEP = 0.01		!grid step (for stand alone)
+		!GRID_START_W = 10		!start point for longitute
+		!GRID_START_H = 33		!start point for latitude
+		!TIMESTEPS = 1			!count of TIMESTEPS in model
+		!DT = 100			!timestep
+		DEEP = 1			!deep of slice
+		FREQUENCY_FOR_FILE = 10 	!write to file once per 100 iterations
+		LAND_MODE = 0			!0- if particle is drifting near the coast, 1 - if particle stays on land
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 		open(12,FILE='tracks/tracks.txt')
 	END SUBROUTINE
 
@@ -339,6 +374,7 @@ contains
 	! Fill particles coordinates
 	SUBROUTINE o_fill_particles
 		integer :: x1_root, x2_root
+<<<<<<< HEAD
 		integer :: flag
 		real(8) :: x, y
 		
@@ -357,6 +393,19 @@ contains
 
 		do i=1,N_P
 			call is_in_subdomain(x1_p(i), x2_p(i), i)
+=======
+		x1_p = 2.2 * GRID_STEP + GRID_START_W
+		x2_p = 2.2 * GRID_STEP + GRID_START_H
+
+		!x1_p(2) = 3 * GRID_STEP + GRID_START_W
+		!x2_p(2) = 8.8 * GRID_STEP + GRID_START_H
+
+		!x1_p(3) = 4.4 * GRID_STEP + GRID_START_W
+		!x2_p(3) = 8.8 * GRID_STEP + GRID_START_H
+
+		do i=1,N_P
+			call is_in_subdomain_start(x1_p(i), x2_p(i), i)
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 			if (flags(i) == 1) THEN
 				call dihotomic(x1_p(i), x2_p(i), x1_root, x2_root)
 				p_nodes(i, 1) = x1_root
@@ -603,6 +652,17 @@ contains
 		end if
 	END SUBROUTINE
 
+<<<<<<< HEAD
+=======
+	SUBROUTINE is_in_subdomain_start(w,h,id)
+		integer, intent(in) :: id
+		real(8),intent(in)  :: w, h
+		if (w >= x1_v(i_west,j_south) .and. w < x1_v(i_east,j_south) .and. h >= x2_v(i_west,j_south) .and. h < x2_v(i_east,j_north)) THEN
+			flags(id) = 1
+		end if
+	END SUBROUTINE
+
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 	! Defining area where particle left for
 	SUBROUTINE choose_subdomain(w, h, subfield)
 		integer(4), intent(out) :: subfield
@@ -650,7 +710,10 @@ contains
 		real(8), intent(in) :: f1, f2, f3, f4
 		real(8), intent(in) :: x, y
 		real(8), intent(out) :: res
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 		res = f1 * (x2-x) * (y2 - y)/((x2-x1)*(y2-y1)) +  f2 * (x-x1) * (y2 - y)/((x2-x1)*(y2-y1)) +&
 			 f3 * (x2-x) * (y - y1)/((x2-x1)*(y2-y1)) +  f4 * (x-x1) * (y - y1)/((x2-x1)*(y2-y1))
 	END SUBROUTINE
@@ -808,14 +871,20 @@ contains
 	! Main cycle of getting tracks
 	SUBROUTINE o_find_tracks
 		do i = 1, TIMESTEPS
+<<<<<<< HEAD
 			if (mod(i, FREQUENCY_FOR_FILE) == 0) THEN
 				call o_update(FREQUENCY_FOR_FILE)
+=======
+			call o_update(mod(i,FREQUENCY_FOR_FILE)+1)
+			if (mod(i, FREQUENCY_FOR_FILE) == 0) THEN
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 				call o_gather_all_tracks
 				call o_print_file_tracks(FREQUENCY_FOR_FILE)
 				do n=1,N_P
 					x1_p_track(n,0) = x1_p_track(n,FREQUENCY_FOR_FILE)
 					x2_p_track(n,0) = x2_p_track(n,FREQUENCY_FOR_FILE)
 					x1_p_track(n,1:FREQUENCY_FOR_FILE) = -1
+<<<<<<< HEAD
 					x2_p_track(n,1:FREQUENCY_FOR_FILE) = -1			
 				end do
 			else if (i == TIMESTEPS) THEN
@@ -824,6 +893,13 @@ contains
 				call o_print_file_tracks(FREQUENCY_FOR_FILE)
 			else
 				call o_update(mod(i,FREQUENCY_FOR_FILE))
+=======
+					x2_p_track(n,1:FREQUENCY_FOR_FILE) = -1				
+				end do
+			else if (i == TIMESTEPS) THEN
+				call o_gather_all_tracks
+				call o_print_file_tracks(mod(TIMESTEPS,FREQUENCY_FOR_FILE))
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 			end if
 		end do
 	END SUBROUTINE
@@ -873,7 +949,10 @@ contains
 							buffer(2*step+5) = p_nodes(n,2) 
 							buffer(2*step+6) = we
 							buffer(2*step+7) = sn
+<<<<<<< HEAD
 							print *, "SEND"
+=======
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 							call MPI_SEND(buffer,step*2+3+4 , MPI_DOUBLE_PRECISION, subfield,11,MY_COMM,req,ierr)
 						end if
 					else
@@ -922,7 +1001,18 @@ contains
 					rbuf(FREQUENCY_FOR_FILE+2:2*FREQUENCY_FOR_FILE+1) = x2_p_track(j,1:FREQUENCY_FOR_FILE)
 					rbuf(1) = dble(j)
 				else
+<<<<<<< HEAD
 					call MPI_RECV(rbuf, FREQUENCY_FOR_FILE*2+1, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, 12,MY_COMM,stats,ierr)
+=======
+					if (flags(j) == -3) THEN
+						rbuf = -1
+						rbuf(1) = j
+					else
+						print *, "recv"
+						call MPI_RECV(rbuf, FREQUENCY_FOR_FILE*2+1, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, 12,MY_COMM,stats,ierr)
+						print *, "got"
+					end if
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 				end if
 				collector((rbuf(1)-1)*(2*FREQUENCY_FOR_FILE+1)+1:rbuf(1)*(2*FREQUENCY_FOR_FILE + 1)) = rbuf
 			end do
@@ -933,7 +1023,11 @@ contains
 					sbuf(2:FREQUENCY_FOR_FILE+1) = x1_p_track(j,1:FREQUENCY_FOR_FILE)
 					sbuf(FREQUENCY_FOR_FILE+2:2*FREQUENCY_FOR_FILE+1) = x2_p_track(j,1:FREQUENCY_FOR_FILE)
 					sbuf(1) = dble(j)
+<<<<<<< HEAD
 					!print *, "send"
+=======
+					print *, "send"
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 					call MPI_SEND(sbuf,FREQUENCY_FOR_FILE*2+1,MPI_DOUBLE_PRECISION, MAIN_PROC, 12, MY_COMM, req,ierr)
 				end if
 			end if
@@ -945,13 +1039,21 @@ PROGRAM main
 	use shared_module
 	use o_lagrange
 	integer(4) :: ierr, rank_proc, count_processes
+<<<<<<< HEAD
+=======
+	integer(4) :: Width = 11, Height = 11
+
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 	double precision time_start, time_finish, tick
 	
 	call MPI_INIT(IERR)
 	call MPI_COMM_SIZE(MPI_COMM_WORLD, count_processes, ierr)
 	call MPI_COMM_RANK(MPI_COMM_WORLD, rank_proc, ierr)
 	
+<<<<<<< HEAD
 	!print *, count_processes
+=======
+>>>>>>> 9c681a1b12b591f44908549114758bab43bfa8eb
 	!ADJUSTMENT
 	call o_set_config(count_processes, rank_proc)
 	
