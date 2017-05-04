@@ -1,0 +1,239 @@
+	! Get next location of particle
+	SUBROUTINE o_update(step)
+		integer,intent(in):: step
+		real(8) u_c_inter,v_c_inter,w_inter,u_c_inter_bi,v_c_inter_bi 
+		integer(4) subfield
+		integer is_gone
+		integer we,sn,ud
+		real(8) temp_x1_v0, temp_x2_v0
+		real(8) temp_x1_v1, temp_x2_v1
+		real(8) temp_x1_v2, temp_x2_v2
+		real(8) temp_x1_v3, temp_x2_v3
+
+		real(8) temp_u_c_v0
+		real(8) temp_u_c_v1
+		real(8) temp_u_c_v2
+		real(8) temp_u_c_v3
+		real(8) temp_u_c_v4
+		real(8) temp_u_c_v5
+		real(8) temp_u_c_v6
+		real(8) temp_u_c_v7
+
+		real(8) temp_v_c_v0
+		real(8) temp_v_c_v1
+		real(8) temp_v_c_v2
+		real(8) temp_v_c_v3
+		real(8) temp_v_c_v4
+		real(8) temp_v_c_v5
+		real(8) temp_v_c_v6
+		real(8) temp_v_c_v7
+
+		integer(8) temp_kv_v0
+		integer(8) temp_kv_v1
+		integer(8) temp_kv_v2
+		integer(8) temp_kv_v3
+
+		real(8) temp_w_v0
+		real(8) temp_w_v1
+		real(8) temp_w_v2
+
+		if (step == 1) THEN
+			x1_p(1) = -2.5
+			x2_p(1) = 2.5
+			x3_p(1) = 1
+		end if
+
+		temp_x1_v0 = x1_v(x1_node(1),x2_node(1))
+		temp_x2_v0 = x2_v(x1_node(1),x2_node(1))
+		temp_x1_v1 = x1_v(x1_node(1)+1,x2_node(1))
+		temp_x2_v1 = x2_v(x1_node(1)+1,x2_node(1))
+		temp_x1_v2 = x1_v(x1_node(1),x2_node(1)-1)
+		temp_x2_v2 = x2_v(x1_node(1),x2_node(1)-1)
+		temp_x1_v3 = x1_v(x1_node(1)+1,x2_node(1)-1)
+		temp_x2_v3 = x2_v(x1_node(1)+1,x2_node(1)-1)
+
+		temp_v_c_v0 = v_c(x3_node(1),x1_node(1),x2_node(1))
+		temp_v_c_v1 = v_c(x3_node(1),x1_node(1)+1,x2_node(1))
+		temp_v_c_v2 = v_c(x3_node(1),x1_node(1),x2_node(1)-1)
+		temp_v_c_v3 = v_c(x3_node(1),x1_node(1)+1,x2_node(1)-1)
+		temp_v_c_v4 = v_c(x3_node(1)+1,x1_node(1),x2_node(1))
+		temp_v_c_v5 = v_c(x3_node(1)+1,x1_node(1)+1,x2_node(1))
+		temp_v_c_v6 = v_c(x3_node(1)+1,x1_node(1),x2_node(1)-1)
+		temp_v_c_v7 = v_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)-1)
+
+		temp_u_c_v0 = u_c(x3_node(1),x1_node(1),x2_node(1))
+		temp_u_c_v1 = u_c(x3_node(1),x1_node(1)+1,x2_node(1))
+		temp_u_c_v2 = u_c(x3_node(1),x1_node(1),x2_node(1)-1)
+		temp_u_c_v3 = u_c(x3_node(1),x1_node(1)+1,x2_node(1)-1)
+		temp_u_c_v4 = u_c(x3_node(1)+1,x1_node(1),x2_node(1))
+		temp_u_c_v5 = u_c(x3_node(1)+1,x1_node(1)+1,x2_node(1))
+		temp_u_c_v6 = u_c(x3_node(1)+1,x1_node(1),x2_node(1)-1)
+		temp_u_c_v7 = u_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)-1)
+
+		temp_w_v0 = w(x3_node(1),x1_node(1)+1,x2_node(1))
+		temp_w_v0 = w(x3_node(1)+1,x1_node(1)+1,x2_node(1))
+		temp_w_v0 = w(x3_node(1)+2,x1_node(1)+1,x2_node(1))
+
+		temp_kv_v0 = kv(x1_node(1), x2_node(1))
+		temp_kv_v1 = kv(x1_node(1), x2_node(1))
+		temp_kv_v2 = kv(x1_node(1), x2_node(1))
+		temp_kv_v3 = kv(x1_node(1), x2_node(1))
+
+
+		 x1_v(x1_node(1),x2_node(1)) =-3
+		x2_v(x1_node(1),x2_node(1)) =3
+		 x1_v(x1_node(1)+1,x2_node(1)) =3
+		 x2_v(x1_node(1)+1,x2_node(1)) =3
+		 x1_v(x1_node(1),x2_node(1)-1) =-3
+		x2_v(x1_node(1),x2_node(1)-1) =-3
+		x1_v(x1_node(1)+1,x2_node(1)-1) =3
+		 x2_v(x1_node(1)+1,x2_node(1)-1) =-3
+
+		v_c(x3_node(1),x1_node(1),x2_node(1)) =1
+		 v_c(x3_node(1),x1_node(1)+1,x2_node(1)) =1
+		v_c(x3_node(1),x1_node(1),x2_node(1)-1) =1
+		 v_c(x3_node(1),x1_node(1)+1,x2_node(1)-1) =1
+		 v_c(x3_node(1)+1,x1_node(1),x2_node(1)) =1
+		v_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)) =1
+		v_c(x3_node(1)+1,x1_node(1),x2_node(1)-1) =1
+		 v_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)-1) =1
+
+		 u_c(x3_node(1),x1_node(1),x2_node(1)) =0
+		 u_c(x3_node(1),x1_node(1)+1,x2_node(1)) =0
+		 u_c(x3_node(1),x1_node(1),x2_node(1)-1) =0
+		 u_c(x3_node(1),x1_node(1)+1,x2_node(1)-1) =0
+		 u_c(x3_node(1)+1,x1_node(1),x2_node(1)) =0 
+		 u_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)) =0 
+		 u_c(x3_node(1)+1,x1_node(1),x2_node(1)-1) =0
+		 u_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)-1) =0
+
+		 w(x3_node(1),x1_node(1)+1,x2_node(1)) =-1
+		 w(x3_node(1)+1,x1_node(1)+1,x2_node(1)) =-1 
+		 w(x3_node(1)+2,x1_node(1)+1,x2_node(1)) =-1
+ 
+		 kv(x1_node(1), x2_node(1)) = 100
+		 kv(x1_node(1), x2_node(1)) = 100
+		 kv(x1_node(1), x2_node(1)) = 100
+		 kv(x1_node(1), x2_node(1)) = 100
+
+		do n=1,N_P
+			if (flags(n) == 1) then
+				print *, x1_node(n),x2_node(n),x3_node(n)
+				call o_3Dlinear_interp(x1_p(n),x2_p(n),x3_p(n),x1_v(x1_node(n),x2_node(n)-1),x2_v(x1_node(n),x2_node(n)-1),x1_v(x1_node(n)+1,x2_node(n)),x2_v(x1_node(n)+1,x2_node(n)),z(x3_node(n)),z(x3_node(n)+1),u_c(x3_node(n),x1_node(n),x2_node(n)),u_c(x3_node(n),x1_node(n)+1,x2_node(n)),u_c(x3_node(n),x1_node(n),x2_node(n)-1),u_c(x3_node(n),x1_node(n)+1,x2_node(n)-1),u_c(x3_node(n)+1,x1_node(n),x2_node(n)),u_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)),u_c(x3_node(n)+1,x1_node(n),x2_node(n)-1),u_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)-1),u_c_inter) 
+				call o_3Dlinear_interp(x1_p(n),x2_p(n),x3_p(n),x1_v(x1_node(n),x2_node(n)-1),x2_v(x1_node(n),x2_node(n)-1),x1_v(x1_node(n)+1,x2_node(n)),x2_v(x1_node(n)+1,x2_node(n)),z(x3_node(n)),z(x3_node(n)+1),v_c(x3_node(n),x1_node(n),x2_node(n)),v_c(x3_node(n),x1_node(n)+1,x2_node(n)),v_c(x3_node(n),x1_node(n),x2_node(n)-1),v_c(x3_node(n),x1_node(n)+1,x2_node(n)-1),v_c(x3_node(n)+1,x1_node(n),x2_node(n)),v_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)),v_c(x3_node(n)+1,x1_node(n),x2_node(n)-1),v_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)-1),v_c_inter)
+				call o_3points_interp(x3_p(n),zw(x3_node(n)),w(x3_node(n),x1_node(n)+1,x2_node(n)),zw(x3_node(n)+1),w(x3_node(n)+1,x1_node(n)+1,x2_node(n)),zw(x3_node(n)+2),w(x3_node(n)+2,x1_node(n)+1,x2_node(n)),w_inter)
+
+				print *, u_c_inter,v_c_inter,w_inter		
+				x1_p_track(n,step) = x1_p(n)
+				x2_p_track(n,step) = x2_p(n)
+				x3_p_track(n,step) = x3_p(n)
+				print *,w(x3_node(1),x1_node(n)+1,x2_node(1)),w(x3_node(1)+1,x1_node(n)+1,x2_node(1)),w(x3_node(1)+2,x1_node(n)+1,x2_node(1))
+				print *, x1_p(n), x2_p(n), x3_p(n)
+				x1_p(n) = x1_p(n) + u_c_inter*DT
+				x2_p(n) = x2_p(n) + v_c_inter*DT
+				x3_p(n) = x3_p(n) - w_inter*DT
+				
+				
+				!x1_p(n) = x1_p(n) + (u_c_inter*DT*180.)/(RADIUS*PI*cos(x2_p(n)/180.*PI))
+				!x2_p(n) = x2_p(n) + (v_c_inter*DT*180.)/(RADIUS*PI)
+				!x3_p(n) = x3_p(n) + w_inter*DT
+				!call is_on_land(x1_p(n),x2_p(n),x3_p(n),x1_p_track(n,step-1),x2_p_track(n,step-1),x3_p_track(n,step-1),x1_node(n),x2_node(n),x3_node(n),n)
+				!print *, n,x1_p(n),x2_p(n),x3_p(n)
+
+				!call is_in_cell(x1_p(n),x2_p(n),x3_p(n),n,is_gone)
+				!if (is_gone == 1) THEN
+				!	call is_in_subdomain(x1_p(n),x2_p(n),n)
+				!	if (flags(n) == 0) then
+				!		call SEND_MY(n,step)
+				!	else
+				!		call choose_cell(x1_p(n),x2_p(n),x3_p(n),n,we,sn,ud)
+				!		call set_cell_data(we,sn,ud,n)
+				!	end if
+				!end if
+			end if
+		end do
+		call MPI_BARRIER(MY_COMM,ierr)
+		!call RECV_MY(step)
+
+		 x1_v(x1_node(1),x2_node(1)) =temp_x1_v0
+		x2_v(x1_node(1),x2_node(1)) =temp_x2_v0 
+		 x1_v(x1_node(1)+1,x2_node(1)) =temp_x1_v1
+		 x2_v(x1_node(1)+1,x2_node(1)) =temp_x2_v1
+		 x1_v(x1_node(1),x2_node(1)-1) =temp_x1_v2
+		x2_v(x1_node(1),x2_node(1)-1) =temp_x2_v2 
+		x1_v(x1_node(1)+1,x2_node(1)-1) =temp_x1_v3 
+		 x2_v(x1_node(1)+1,x2_node(1)-1) =temp_x2_v3
+
+		v_c(x3_node(1),x1_node(1),x2_node(1)) =temp_v_c_v0 
+		 v_c(x3_node(1),x1_node(1)+1,x2_node(1)) =temp_v_c_v1
+		v_c(x3_node(1),x1_node(1),x2_node(1)-1) =temp_v_c_v2 
+		 v_c(x3_node(1),x1_node(1)+1,x2_node(1)-1) =temp_v_c_v3
+		 v_c(x3_node(1)+1,x1_node(1),x2_node(1)) =temp_v_c_v4
+		v_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)) =temp_v_c_v5 
+		v_c(x3_node(1)+1,x1_node(1),x2_node(1)-1) =temp_v_c_v6 
+		 v_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)-1) =temp_v_c_v7
+
+		 u_c(x3_node(1),x1_node(1),x2_node(1)) =temp_u_c_v0 
+		 u_c(x3_node(1),x1_node(1)+1,x2_node(1)) =temp_u_c_v1 
+		 u_c(x3_node(1),x1_node(1),x2_node(1)-1) =temp_u_c_v2
+		 u_c(x3_node(1),x1_node(1)+1,x2_node(1)-1) =temp_u_c_v3 
+		 u_c(x3_node(1)+1,x1_node(1),x2_node(1)) =temp_u_c_v4 
+		 u_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)) =temp_u_c_v5 
+		 u_c(x3_node(1)+1,x1_node(1),x2_node(1)-1) =temp_u_c_v6 
+		 u_c(x3_node(1)+1,x1_node(1)+1,x2_node(1)-1) =temp_u_c_v7 
+
+		 w(x3_node(1),x1_node(1)+1,x2_node(1)) =temp_w_v0 
+		 w(x3_node(1)+1,x1_node(1)+1,x2_node(1)) =temp_w_v0 
+		 w(x3_node(1)+2,x1_node(1)+1,x2_node(1)) =temp_w_v0
+
+		 kv(x1_node(1), x2_node(1)) = temp_kv_v0 
+		 kv(x1_node(1), x2_node(1)) = temp_kv_v1 
+		 kv(x1_node(1), x2_node(1)) = temp_kv_v2 
+		 kv(x1_node(1), x2_node(1)) = temp_kv_v3 
+	END SUBROUTINE
+
+
+
+
+
+
+
+	! Get next location of particle
+	SUBROUTINE o_update(step)
+		integer,intent(in):: step
+		real(8) u_c_inter,v_c_inter,w_inter,u_c_inter_bi,v_c_inter_bi 
+		integer(4) subfield
+		integer is_gone
+		integer we,sn,ud
+
+		do n=1,N_P
+			if (flags(n) == 1) then
+				call o_3Dlinear_interp(x1_p(n),x2_p(n),x3_p(n),x1_v(x1_node(n),x2_node(n)-1),x2_v(x1_node(n),x2_node(n)-1),x1_v(x1_node(n)+1,x2_node(n)),x2_v(x1_node(n)+1,x2_node(n)),z(x3_node(n)),z(x3_node(n)+1),u_c(x3_node(n),x1_node(n),x2_node(n)),u_c(x3_node(n),x1_node(n)+1,x2_node(n)),u_c(x3_node(n),x1_node(n),x2_node(n)-1),u_c(x3_node(n),x1_node(n)+1,x2_node(n)-1),u_c(x3_node(n)+1,x1_node(n),x2_node(n)),u_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)),u_c(x3_node(n)+1,x1_node(n),x2_node(n)-1),u_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)-1),u_c_inter) 
+				call o_3Dlinear_interp(x1_p(n),x2_p(n),x3_p(n),x1_v(x1_node(n),x2_node(n)-1),x2_v(x1_node(n),x2_node(n)-1),x1_v(x1_node(n)+1,x2_node(n)),x2_v(x1_node(n)+1,x2_node(n)),z(x3_node(n)),z(x3_node(n)+1),v_c(x3_node(n),x1_node(n),x2_node(n)),v_c(x3_node(n),x1_node(n)+1,x2_node(n)),v_c(x3_node(n),x1_node(n),x2_node(n)-1),v_c(x3_node(n),x1_node(n)+1,x2_node(n)-1),v_c(x3_node(n)+1,x1_node(n),x2_node(n)),v_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)),v_c(x3_node(n)+1,x1_node(n),x2_node(n)-1),v_c(x3_node(n)+1,x1_node(n)+1,x2_node(n)-1),v_c_inter)
+				call o_3points_interp(x3_p(n),zw(x3_node(n)),w(x3_node(n),x1_node(n)+1,x2_node(n)),zw(x3_node(n)+1),w(x3_node(n)+1,x1_node(n)+1,x2_node(n)),zw(x3_node(n)+2),w(x3_node(n)+2,x1_node(n)+1,x2_node(n)),w_inter)
+	
+				x1_p_track(n,step) = x1_p(n)
+				x2_p_track(n,step) = x2_p(n)
+				x3_p_track(n,step) = x3_p(n)
+				
+				x1_p(n) = x1_p(n) + (u_c_inter*DT*180.)/(RADIUS*PI*cos(x2_p(n)/180.*PI))
+				x2_p(n) = x2_p(n) + (v_c_inter*DT*180.)/(RADIUS*PI)
+				x3_p(n) = x3_p(n) + w_inter*DT
+				print *, x1_p(n), x2_p(n), x3_p(n)
+				call is_on_land(x1_p(n),x2_p(n),x3_p(n),x1_p_track(n,step-1),x2_p_track(n,step-1),x3_p_track(n,step-1),x1_node(n),x2_node(n),x3_node(n),n)
+
+				call is_in_cell(x1_p(n),x2_p(n),x3_p(n),n,is_gone)
+				if (is_gone == 1) THEN
+					call is_in_subdomain(x1_p(n),x2_p(n),n)
+					if (flags(n) == 0) then
+						call SEND_MY(n,step)
+					else
+						call choose_cell(x1_p(n),x2_p(n),x3_p(n),n,we,sn,ud)
+						call set_cell_data(we,sn,ud,n)
+					end if
+				end if
+			end if
+		end do
+		call MPI_BARRIER(MY_COMM,ierr)
+		call RECV_MY(step)
+	END SUBROUTINE

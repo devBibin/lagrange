@@ -1,0 +1,21 @@
+import socket
+import time
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.bind(('', 9093))
+sock.listen(1)
+conn, addr = sock.accept()
+
+print 'connected:', addr
+
+while True:
+	data
+	conn.setblocking(0)
+	time.sleep(1)
+	try:
+		data = conn.recv(1024)
+		if (data):
+			print(data)
+	except:
+		print("no data")
+	print(data)

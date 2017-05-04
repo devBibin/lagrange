@@ -1,0 +1,178 @@
+MODULE o_lagrange
+	implicit none
+	integer(4), parameter :: Deep = 1, Width = 1000, Height = 1000
+	integer(4), parameter :: N_PARTICLES = 1 ! number of particles
+	integer(4) :: AllocateStatus, i, j
+	integer(4) :: istart, jstart, ifinish, jfinish
+
+	real(4),allocatable :: w (:,:), h(:,:) 
+	real(4),allocatable :: usea (:,:,:), vsea(:,:,:) 
+	! Particles coordinates
+	real(8),allocatable ::  x1p (:)! longitude of advected particles
+	real(8),allocatable ::  x2p (:)! latitude  of advected particles
+
+	! Trajectories
+	real(4),allocatable ::  x1_trek(:,:)   ! trajectories of all particles will be stored in these arrays
+	real(4),allocatable ::  x2_trek(:,:)   ! for all timesteps. 1st index = timestep, 2nd = # of particle
+
+contains
+	SUBROUTINE o_alloc_check(stat)
+		integer(4), intent(in) :: stat
+		IF (stat /= 0) THEN
+			PRINT *, 'Not enough memory'			
+			STOP
+		END IF
+	END SUBROUTINE
+
+	SUBROUTINE o_alloc_data
+		!print *, '!!!'
+		ALLOCATE ( w(Width, Height), STAT = AllocateStatus)
+		call o_alloc_check(AllocateStatus)		
+		ALLOCATE ( h(Width, Height), STAT = AllocateStatus)
+		call o_alloc_check(AllocateStatus)		
+		ALLOCATE ( usea(Deep, Width, Height), STAT = AllocateStatus)
+		call o_alloc_check(AllocateStatus)		
+		ALLOCATE ( vsea(Deep, Width, Height), STAT = AllocateStatus)
+		call o_alloc_check(AllocateStatus)
+	END SUBROUTINE
+
+	SUBROUTINE o_fill_indexes(start_i, start_j, finish_i, finish_j)
+		integer, intent(in) :: start_i, start_j, finish_i, finish_j
+		istart = start_i 
+		jstart = start_j
+	        ifinish = finish_i
+		jfinish = finish_j
+	END SUBROUTINE
+
+	SUBROUTINE o_get_size(wi, he)
+		integer, intent(out) :: wi, he
+		wi = Width
+		he = Height
+	END SUBROUTINE
+
+	SUBROUTINE o_fill_grid
+		do i = 1, Width, 1
+			do j = 1, Height, 1
+				w(i, j) = 0. + real(j) 
+				h(i, j) = 0. + real(i) 
+				usea(1,i,j) = 123.09
+				vsea(1,i,j) = 123.09
+			end do
+		end do
+	END SUBROUTINE
+
+	SUBROUTINE o_fill_u_v
+		real(4) :: xc, yc, rmax, x, y, r, u, v, cos_alfa, sin_alfa
+	! vortex center
+		xc = (Width+1)/2.0
+		yc = (Height+1)/2.0
+
+	! vortex size
+		rmax = sqrt( (w(1,1)-xc)**2 + (h(1,1)-yc)**2)
+	! set currents	
+		do i = 1, Width, 1
+			do j = 1, Height, 1				
+				x = w(i,j)
+				y = h(i,j)
+				!write (*,'(f6.3,A, f6.3)'), x,'|',y	
+				if (x == xc .and. y == yc) then
+					usea(1,i,j) = 0.
+					vsea(1,i,j) = 0.
+					!print*,'!!!!!!!!!!!!!!!!!1'
+				else
+					r = sqrt( (x-xc)**2 + (y-yc)**2 )  ! polar coordinates
+					cos_alfa = (xc-x) / r	   ! of the grid node					
+					sin_alfa = (y-yc) / r
+					!write (*,'(f6.3,A,f6.3)'), r * sin_alfa,'|',r*cos_alfa
+					!write (*,'(f6.3,A,f6.3)'), sin_alfa, '|', cos_alfa
+
+					usea(1,i,j) = r/rmax * sin_alfa
+					vsea(1,i,j) = r/rmax * cos_alfa
+				end if
+				!PRINT *,''
+			end do
+		end do
+	END SUBROUTINE
+
+	SUBROUTINE o_print_data
+		print *, 'GRID'
+		do i = 1, Width, 1
+			do j = 1, Height, 1
+				write (*,'(f6.4, A, f6.4,A$)'), w(i,j),'|', h(i,j),'|||'
+			end do
+			print*,''
+		end do
+		print *, 'SPEED'
+		do i = 1, Width, 1
+			do j = 1, Height, 1
+				write (*,'(f6.2, A, f6.2,A$)'), usea(1,i,j),'|', vsea(1,i,j),'|||'
+			end do
+			print*,''
+		end do
+	END SUBROUTINE
+
+        SUBROUTINE o_dealloc_data
+                DEALLOCATE ( w, STAT = AllocateStatus)
+                DEALLOCATE ( h, STAT = AllocateStatus)
+                DEALLOCATE ( usea, STAT = AllocateStatus)
+                DEALLOCATE ( vsea, STAT = AllocateStatus)
+        END SUBROUTINE
+
+END MODULE
+
+MODULE divide_grid
+	implicit none
+	contains
+	SUBROUTINE g_fill_indexes(rank, proc_count, x_m, y_m, i_s, i_f, j_s, j_f)
+		integer, intent(in) :: x_m, y_m, proc_count, rank
+		integer, intent(out) :: i_s, i_f, j_s, j_f
+		integer(4) :: step_x, step_y
+		step_x = x_m/proc_count
+		step_y = y_m/proc_count
+		if (rank == proc_count - 1) then
+			if (mod(x_m,proc_count) /= 0) then
+				i_s = x_m - mod(x_m,proc_count) + 1
+			else
+				i_s = x_m - step_x + 1
+			end if
+			i_f = x_m
+			if (mod(y_m,proc_count) /= 0) then
+				j_s = y_m - mod(y_m,proc_count) + 1
+			else
+				j_s = y_m - step_y + 1
+			end if
+			j_f = y_m
+		else
+			i_s = rank * step_x  + 1
+			i_f = (rank + 1) * step_x
+			j_s = rank * step_y + 1
+			j_f = (rank + 1) * step_y
+		end if 
+	END SUBROUTINE
+END MODULE
+
+PROGRAM curve
+	use o_lagrange
+	use divide_grid
+	include 'mpif.h' 
+	!implicit none	
+	integer(4) :: ierr, rank_proc, count_proc
+	integer(4) :: x_max, y_max
+	integer(4) :: i_s, j_s, i_f, j_f
+
+	call o_get_size(x_max, y_max)	
+	
+	call MPI_INIT(IERR)
+	call MPI_COMM_SIZE(MPI_COMM_WORLD, count_proc, ierr)
+	call MPI_COMM_RANK(MPI_COMM_WORLD, rank_proc, ierr)
+	call g_fill_indexes(rank_proc, count_proc, x_max, y_max, i_s, i_f, j_s, j_f) 
+	print *, 'rank = ', rank_proc, 'is=', i_s, 'if=', i_f
+	print *, 'rank = ', rank_proc, 'js=', j_s, 'jf=', j_f
+	print *,''
+	!call o_alloc_data
+	!call o_fill_grid
+	!call o_fill_u_v	
+	!call o_print_data
+	!call o_dealloc_data
+	call MPI_FINALIZE(IERR)
+END PROGRAM

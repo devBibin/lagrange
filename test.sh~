@@ -1,0 +1,7 @@
+#!/bin/sh
+INP="$(ls -1 | $7)"
+echo "print"
+echo "${INP}"
+COM="kill -g $INP"
+#eval $COM
+echo "${COM}"

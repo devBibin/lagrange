@@ -1,0 +1,336 @@
+		print *, '!= ',rank
+		if (rank == 0) THEN
+
+		do i = 1, n_p
+			if (flags(i) == 1) THEN
+				sbuf(1:timesteps) = x1_p_track(i,:)
+				sbuf(timesteps+1:2*timesteps) = x2_p_track(i,:)
+				sbuf(timesteps*2 + 1) = i
+				print *, sbuf
+				print *, 'WTF', i 
+call MPI_GATHER(sbuf, 2*timesteps + 1, MPI_DOUBLE_PRECISION, collector,  2*timesteps + 1, &
+&MPI_DOUBLE_PRECISION, MAIN_PROC, MPI_COMM_WORLD, ierr)
+			if (rank == 0) THEN
+			end if
+			end if
+		end do
+		print *, '!!!= ',rank
+
+		end if
+		call sleep(1)
+
+
+	integer(4) :: ierr, rank_proc, count_processes
+	integer buffer(1)
+	integer reqs(2), stats(MPI_STATUS_SIZE,2)
+
+	call MPI_INIT(IERR)
+	call MPI_COMM_SIZE(MPI_COMM_WORLD, count_processes, ierr)
+	call MPI_COMM_RANK(MPI_COMM_WORLD, rank_proc, ierr)
+
+	do i = 1, 15
+		buffer(1) = 9999
+		call MPI_IRECV(buffer, 1, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, reqs(1), ierr)
+		print *, rank_proc,';',buffer(1)
+		if (i == 3) THEN
+			buffer(1) = i
+			call MPI_SEND(buffer, 1, MPI_INTEGER, 0, 5, MPI_COMM_WORLD, ierr)
+		end if
+		call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+	end do
+
+
+	integer(4) :: ierr, rank_proc, count_processes
+	integer(4) :: Width = 11, Height = 11
+	integer(4) :: south, north, west, east
+	integer(4) :: r_s, r_n, r_w, r_e, r_se, r_sw, r_ne, r_nw
+	integer :: buffer(1)
+	integer :: reqs(2), stats(MPI_STATUS_SIZE,2)
+
+
+	integer :: buffer(1)
+	integer :: reqs(2), stats(MPI_STATUS_SIZE,2)
+	integer(4) subfield; subfield = 3
+		do i = 1, 15		
+			buffer(1) = 9999
+			call MPI_IRECV(buffer, 1, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, reqs(1), ierr)
+			print *, rank,';',i,';',buffer(1)
+			if (i == 3) THEN
+				call MPI_SEND(rank, 1, MPI_INTEGER, subfield, 5, MPI_COMM_WORLD, ierr)
+			end if
+			call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+		end do
+
+
+
+
+
+
+
+
+		integer(4), intent(in) :: step
+		real(4) u_c_inter, v_c_inter
+		real(4) u(4), v(4)
+		integer(4) x1(n_p), x2(n_p), x3(n_p), x4(n_p)
+		integer(4) y1(n_p), y2(n_p), y3(n_p), y4(n_p)
+		integer(4) ip(n_p), jp(n_p)
+		integer(4) subfield
+		integer buffer(1) 
+		integer ierr
+		integer req, stats(MPI_STATUS_SIZE)
+		logical flag
+
+		buffer(1) = -9999
+		!buffer(2) = -9999
+		!buffer(3) = -1
+
+		if (rank == 0) THEN				
+		end if
+		
+		print *, 'inside o_update', step,';',rank
+
+		
+		call MPI_IRECV(buffer, 1, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, req, ierr)
+		print *, buffer		
+		!call MPI_TEST(req, flag, stats, ierr)
+		!if (flag .eqv. .TRUE.) THEN
+		!	print *, buffer	
+
+
+
+
+
+
+
+
+
+
+
+
+	SUBROUTINE o_find_tracks
+		real(4) u_c_inter, v_c_inter
+		real(4) u(4), v(4)
+		integer(4) x1(n_p), x2(n_p), x3(n_p), x4(n_p)
+		integer(4) y1(n_p), y2(n_p), y3(n_p), y4(n_p)
+		integer(4) ip(n_p), jp(n_p)
+		integer(4) subfield
+		real buffer(3) 
+		integer ierr
+		integer req, stats(MPI_STATUS_SIZE)
+		logical flag
+		do i = 1, timesteps
+			print *, rank,'|', i
+			buffer(1) = -9999
+			buffer(2) = -9999
+			buffer(3) = -1		
+			!call MPI_IRECV(buffer, 3, MPI_DOUBLE_PRECISION, 0, MPI_ANY_TAG, MPI_COMM_WORLD, req, ierr)		
+			!call MPI_TEST(req, flag, stats, ierr)
+			!if (flag .eqv. .TRUE.) THEN
+			!	print *, buffer	
+			!endif
+
+			do n=1,n_p
+				if (flags(n) == 1) THEN
+					call get_nearest_node_w(x1_p(n), x1(n))
+					call get_nearest_node_h(x2_p(n), y1(n))
+				end if
+			end do
+			x2 = x1 + 1
+			y2 = y1
+			x3 = x1
+			y3 = y1 + 1
+			x4 = x1 + 1
+			y4 = y1 + 1
+			do n=1, n_p
+				if (flags(n) == 1) then
+					u(1) = u_c(DEEP,x1(n)  ,y1(n))
+					u(2) = u_c(DEEP,x2(n)  ,y2(n))
+					u(3) = u_c(DEEP,x3(n)  ,y3(n))
+					u(4) = u_c(DEEP,x4(n)  ,y4(n))
+
+					v(1) = v_c(DEEP,x1(n)  ,y1(n))
+					v(2) = v_c(DEEP,x2(n)  ,y2(n))
+					v(3) = v_c(DEEP,x3(n)  ,y3(n))
+					v(4) = v_c(DEEP,x4(n)  ,y4(n))
+
+					call o_bilinear_interp(x1_p(n),x2_p(n),x3(n),y3(n),x2(n),y2(n),u(1),u(2),u(3),u(4),u_c_inter) 
+			    		call o_bilinear_interp(x1_p(n),x2_p(n),x3(n),y3(n),x2(n),y2(n),v(1),v(2),v(3),v(4),v_c_inter)	
+	
+					x1_p_track(n,i) = x1_p(n)
+					x2_p_track(n,i) = x2_p(n)
+			
+					x1_p(n) = x1_p(n) + u_c_inter*dt!(u_c_inter*dt*180.)/(radius*pi*cos(x2_p(n)/180.*pi))
+					x2_p(n) = x2_p(n) + v_c_inter*dt!(v_c_inter*dt*180.)/(radius*pi)
+					call is_in_field(x1_p(n), x2_p(n), n)
+				
+					if (flags(n) == 0) then
+						call choose_subfield(x1_p(n), x2_p(n), subfield)
+						if (subfield == -1) then
+							print *, 'WARNING!!! PARTICLE ',n,' IS OUT OF BORDERS'
+						else
+							!print *, 'from ', rank, 'to ', subfield
+							buffer(1) = x1_p(n)
+							buffer(2) = x2_p(n)
+							buffer(3) = dble(n)
+							if (rank == 0) THEN
+							call MPI_SEND(buffer, 3, MPI_DOUBLE_PRECISION, 3, 5, MPI_COMM_WORLD, req, ierr)
+							end if							
+						end if
+					end if
+				end if
+			end do
+			!call sleep(1)
+			call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+		end do
+	END SUBROUTINE
+
+
+
+	SUBROUTINE o_send_all
+		integer (4) :: ierr
+		real (8) :: sbuf(timesteps * 2 + 1)
+		do i = 1, n_p
+			if (flags(i) == 1) THEN
+				sbuf(1:timesteps) = x1_p_track(i,:)
+				sbuf(timesteps+1:2*timesteps) = x2_p_track(i,:)
+				sbuf(timesteps*2 + 1) = dble(i)
+			end if
+		end do
+		call MPI_GATHER(sbuf, 2*timesteps + 1, MPI_DOUBLE_PRECISION, collector,  2*timesteps + 1, &
+			MPI_DOUBLE_PRECISION, MAIN_PROC, MPI_COMM_WORLD, ierr)
+		if (rank == MAIN_PROC) THEN
+			do i = 1, (n_p * 2 * timesteps + n_p)			
+				!write(12,'(I1,A,f10.5,A,f10.5)') n,';',x1_p_track(n, i),';', x2_p_track(n,
+				print *, collector(i)
+				if (mod(i,2*timesteps+1) == 0) THEN
+					print *, ''
+				end if 
+			end do
+		end if
+		print *,'FINISH', rank
+	END SUBROUTINE
+
+
+
+
+	call MPI_INIT(IERR)
+
+	call MPI_COMM_SIZE(MPI_COMM_WORLD, count_processes, ierr)
+
+	open (10, FILE = 'files_ver1/grid&rank_info.txt')
+	write (10, '(I2,A,I2,A,I2)'), count_processes,';', Width,';', Height
+
+	call MPI_COMM_RANK(MPI_COMM_WORLD, rank_proc, ierr)
+	
+	call g_axis_count_proc(count_processes)	
+	call g_fill_indexes(rank_proc, 1, Height, 1, Width, south, north, west, east)
+	call g_fill_neigbours(r_w, r_e, r_s, r_n, r_se, r_sw, r_ne, r_nw)
+	
+	call o_set_size(Width, Height)	
+	call o_fill_indexes(south,north,west,east,rank_proc, count_processes)
+	call o_set_neigbours(r_w, r_e, r_s, r_n, r_se, r_sw, r_ne, r_nw)
+	call o_alloc_data
+	call o_ini_data
+	call o_find_tracks		
+	call o_print_file
+
+	call o_dealloc_data
+	call MPI_FINALIZE(IERR)
+
+
+
+
+
+
+
+
+
+
+
+	SUBROUTINE o_update(step)
+		integer(4), intent(in):: step
+		real(4) u_c_inter, v_c_inter
+		real(4) u(4), v(4)
+		integer(4) x1(n_p), x2(n_p), x3(n_p), x4(n_p)
+		integer(4) y1(n_p), y2(n_p), y3(n_p), y4(n_p)
+		integer(4) ip(n_p), jp(n_p)
+		integer(4) subfield
+		integer(4) id
+		integer(4) recv_step
+		real buffer(2*timesteps + 3), recv_buffer(2*timesteps + 4)  
+		integer ierr
+		integer req, stats(MPI_STATUS_SIZE)
+		logical flag
+		print *, rank,'|', step
+		
+		recv_step = step - 1
+		call MPI_IRECV(recv_buffer, 2*recv_step + 3, MPI_DOUBLE_PRECISION, MPI_ANY_SOURCE, step, MPI_COMM_WORLD, req, ierr)
+		call MPI_TEST(req, flag, stats, ierr)
+		if (flag .eqv. .true.) THEN
+			print *, "recieved particle=",recv_buffer(2*recv_step+1),"from rank=",stats(MPI_SOURCE),"in rank=",rank
+			print *, "current coordinates=",recv_buffer(2*recv_step+2), recv_buffer(2*recv_step+3)
+			id = recv_buffer(2*recv_step+1)		
+			x1_p(id) = recv_buffer(2*recv_step+2)
+			x2_p(id) = recv_buffer(2*recv_step+3)
+			print *,"flags[",id,']=',1
+			flags(id) = 1
+		end if
+
+		do n=1,n_p
+			if (flags(n) == 1) THEN
+				call get_nearest_node_w(x1_p(n), x1(n))
+				call get_nearest_node_h(x2_p(n), y1(n))
+			end if
+		end do
+		x2 = x1 + 1
+		y2 = y1
+		x3 = x1
+		y3 = y1 + 1
+		x4 = x1 + 1
+		y4 = y1 + 1
+		do n=1, n_p
+			if (flags(n) == 1) then
+				u(1) = u_c(DEEP,x1(n)  ,y1(n))
+				u(2) = u_c(DEEP,x2(n)  ,y2(n))
+				u(3) = u_c(DEEP,x3(n)  ,y3(n))
+				u(4) = u_c(DEEP,x4(n)  ,y4(n))
+
+				v(1) = v_c(DEEP,x1(n)  ,y1(n))
+				v(2) = v_c(DEEP,x2(n)  ,y2(n))
+				v(3) = v_c(DEEP,x3(n)  ,y3(n))
+				v(4) = v_c(DEEP,x4(n)  ,y4(n))
+
+				call o_bilinear_interp(x1_p(n),x2_p(n),x3(n),y3(n),x2(n),y2(n),u(1),u(2),u(3),u(4),u_c_inter) 
+		    		call o_bilinear_interp(x1_p(n),x2_p(n),x3(n),y3(n),x2(n),y2(n),v(1),v(2),v(3),v(4),v_c_inter)	
+		
+				x1_p_track(n,step) = x1_p(n)
+				x2_p_track(n,step) = x2_p(n)
+	
+				x1_p(n) = x1_p(n) + u_c_inter*dt!(u_c_inter*dt*180.)/(radius*pi*cos(x2_p(n)/180.*pi))
+				x2_p(n) = x2_p(n) + v_c_inter*dt!(v_c_inter*dt*180.)/(radius*pi)
+				
+				!print *,'particle ', n,'|||',x1_p(n), x2_p(n)
+
+				call is_in_field(x1_p(n), x2_p(n), n)
+			
+				if (flags(n) == 0) then
+					call choose_subfield(x1_p(n), x2_p(n), subfield)
+					if (subfield == -1) then
+						print *, 'WARNING!!! PARTICLE ',n,' IS OUT OF BORDERS'
+						print *, x1_p(n),x2_p(n)
+						flags(n) = -1
+					else
+						print *, 'SEND TO ', subfield, 'Particle=', n
+						buffer(1:step) = 1
+						buffer(step+1:step*2) = 1
+						buffer(step*2+1) = DBLE(n)
+						buffer(step*2+2) = x1_p(n)
+						buffer(step*2+3) = x2_p(n)	
+						call MPI_SEND(buffer,step*2+3 , MPI_DOUBLE_PRECISION, subfield, step+1,MPI_COMM_WORLD,req,ierr)
+					end if
+				end if
+			end if
+		end do
+		call sleep(1)
+		call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+	END SUBROUTINE
